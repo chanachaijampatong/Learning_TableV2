@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check user role
+    function hasRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
+    }
+    
+    function isTeacher() {
+      return hasRole('teacher');
+    }
+
+    // Academic terms: Public read, Admin write
+    match /academic_terms/{termId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Teachers, Subjects, Classrooms, Groups: Public read, Admin write
+    match /teachers/{teacherId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /classrooms/{roomId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /subjects/{subjectId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /student_groups/{groupId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Schedules: Public read, Admin write
+    match /schedules/{scheduleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Scheduling run logs: Admin only
+    match /scheduling_runs/{runId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
